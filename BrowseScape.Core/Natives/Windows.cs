@@ -1,12 +1,14 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using BrowseScape.Core.Interfaces;
 
 namespace BrowseScape.Core.Natives
 {
-  
+
   [SupportedOSPlatform("windows")]
   public class Windows : IBackend
   {
@@ -18,13 +20,17 @@ namespace BrowseScape.Core.Natives
       internal uint dwMinorVersion;
       internal uint dwBuildNumber;
       internal uint dwPlatformId;
+
       [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
       internal string szCSDVersion;
     }
+
+    [DllImport("ntdll")] private static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
     
-    [DllImport("ntdll")]
-    private static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
-    
+    [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
+
+    [DllImport("user32.dll")] private static extern int GetWindowText(nint hWnd, StringBuilder text, int count);
+
     private void FixWindowFrameOnWin10(Window w)
     {
       switch (w.WindowState)
@@ -48,6 +54,29 @@ namespace BrowseScape.Core.Natives
       }
       Window.WindowStateProperty.Changed.AddClassHandler<Window>((w, _) => FixWindowFrameOnWin10(w));
       Control.LoadedEvent.AddClassHandler<Window>((w, _) => FixWindowFrameOnWin10(w));
+    }
+
+
+    public string GetActiveWindowTitle()
+    {
+      var result = string.Empty;
+      const int NChars = 256;
+      var buff = new StringBuilder(NChars);
+      var handle = GetForegroundWindow();
+
+      if (GetWindowText(handle, buff, NChars) > 0)
+      {
+        result = buff.ToString();
+      }
+      return result;
+    }
+    public Task RegisterAsync()
+    {
+      throw new System.NotImplementedException();
+    }
+    public Task UnregisterAsync()
+    {
+      throw new System.NotImplementedException();
     }
 
   }

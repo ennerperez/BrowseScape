@@ -59,9 +59,17 @@ namespace BrowseScape
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp(args)
-      .InitializeAvaloniaApp(args)
-      .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+      var builder = BuildAvaloniaApp(args).InitializeAvaloniaApp(args);
+
+      if (args.Length == 0)
+      {
+        return;
+      }
+
+      builder.StartWithClassicDesktopLifetime(args);
+    }
 
     internal static bool IsRunning { get; private set; }
     private static AppBuilder InitializeAvaloniaApp(this AppBuilder appBuilder, string[] args)
