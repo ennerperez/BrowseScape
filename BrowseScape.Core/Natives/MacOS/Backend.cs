@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Avalonia;
 using BrowseScape.Core.Interfaces;
 
-namespace BrowseScape.Core.Natives
+namespace BrowseScape.Core.Natives.MacOS
 {
   // ReSharper disable once InconsistentNaming
   [SupportedOSPlatform("macOS")]
-  public class MacOS : IBackend
+  public class Backend : IBackend
   {
     public void SetupApp(AppBuilder builder)
     {

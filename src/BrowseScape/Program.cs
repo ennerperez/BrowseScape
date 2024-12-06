@@ -3,11 +3,13 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
+using Avalonia.Controls.Notifications;
 using Avalonia.Media.Fonts;
+using BrowseScape.Core;
 using BrowseScape.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace BrowseScape
@@ -17,38 +19,30 @@ namespace BrowseScape
 
     #region Metadata
 
-    internal static string Product => Assembly.GetAssembly(typeof(Program)).Product();
-    internal static string DisplayVersion { get; private set; }
-    internal static string Name { get; private set; }
-    internal static Version Version { get; private set; }
-    internal static string Commit { get; private set; }
-    internal static string Tag { get; private set; }
-    internal static string Environment { get; private set; }
-
     [GeneratedRegex(@"v?\=?((?:[0-9]{1,}\.{0,}){1,})\-?(.*)?\+(.*)?", RegexOptions.Compiled)]
     private static partial Regex VersionRegex();
 
     private static void ReadMetadata()
     {
-      Name = Assembly.GetAssembly(typeof(Program)).Product();
+      Metadata.Name = Assembly.GetAssembly(typeof(Program)).Product();
 
       var informationalVersion = Assembly.GetAssembly(typeof(Program)).InformationalVersion();
       var versionMatch = VersionRegex().Match(informationalVersion);
       if (versionMatch.Success)
       {
-        Version = Version.Parse(versionMatch.Groups[1].Value);
-        Tag = versionMatch.Groups[2].Value;
-        Commit = versionMatch.Groups[3].Value?.Substring(0, 7);
-        DisplayVersion = string.Join("-", Version.ToString(3), Tag);
+        Metadata.Version = Version.Parse(versionMatch.Groups[1].Value);
+        Metadata.Tag = versionMatch.Groups[2].Value;
+        Metadata.Commit = versionMatch.Groups[3].Value?.Substring(0, 7);
+        Metadata.DisplayVersion = string.Join("-", Metadata.Version.ToString(3), Metadata.Tag);
       }
-      Environment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+      Metadata.Environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
     }
 
     #endregion
 
     internal static IBackend Backend { get; private set; }
     internal static ILogger Logger { get; private set; }
-
+    internal static ServiceProvider Services { get; set; }
     internal static IConfiguration Configuration { get; private set; }
 
     public static bool IsSingleViewLifetime =>
@@ -61,14 +55,9 @@ namespace BrowseScape
     [STAThread]
     public static void Main(string[] args)
     {
-      var builder = BuildAvaloniaApp(args).InitializeAvaloniaApp(args);
-
-      if (args.Length == 0)
-      {
-        return;
-      }
-
-      builder.StartWithClassicDesktopLifetime(args);
+      BuildAvaloniaApp(args)
+        .InitializeAvaloniaApp(args)
+        .StartWithClassicDesktopLifetime(args);
     }
 
     internal static bool IsRunning { get; private set; }
@@ -111,12 +100,28 @@ namespace BrowseScape
         .Enrich.WithProcessName()
         .Enrich.WithThreadId()
         .Enrich.WithThreadName()
-        .Enrich.WithProperty("ApplicationName", Product);
+        .Enrich.WithProperty("ApplicationName", Metadata.Product);
 
       // Initialize Logger
       Logger = Log.Logger = loggerConfiguration
         .WriteTo.Trace()
         .CreateLogger();
+
+      // Register all the services needed for the application to run
+      var collection = new ServiceCollection();
+      collection.AddSingleton(Configuration);
+      collection.AddLogging(c => c.AddSerilog(Logger, true));
+      
+      collection.AddSingleton<INotificationManager, WindowNotificationManager>();
+      
+      // Core Services
+      collection.AddCore();
+
+      // Creates a ServiceProvider containing services from the provided IServiceCollection
+      Services = collection.BuildServiceProvider();
+
+      var backend = Services.GetService<IBackend>();
+      backend.SetupApp(appBuilder);
 
       IsRunning = true;
 
@@ -142,13 +147,10 @@ namespace BrowseScape
       builder.ConfigureFonts(manager =>
       {
         var monospace = new EmbeddedFontCollection(
-          new Uri($"fonts:{Name}", UriKind.Absolute),
-          new Uri($"avares://{Name}/Resources/Fonts", UriKind.Absolute));
+          new Uri($"fonts:{Metadata.Name}", UriKind.Absolute),
+          new Uri($"avares://{Metadata.Name}/Resources/Fonts", UriKind.Absolute));
         manager.AddFontCollection(monospace);
       });
-
-      Backend = IBackend.GetBackend();
-      Backend.SetupApp(builder);
 
       return builder;
     }

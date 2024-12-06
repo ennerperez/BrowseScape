@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Avalonia;
-using BrowseScape.Core.Natives;
 
 namespace BrowseScape.Core.Interfaces
 {
@@ -21,15 +20,15 @@ namespace BrowseScape.Core.Interfaces
     {
       if (OperatingSystem.IsWindows())
       {
-        return new Windows();
+        return new Natives.Windows.Backend();
       }
       if (OperatingSystem.IsMacOS())
       {
-        return new MacOS();
+        return new Natives.MacOS.Backend();
       }
       if (OperatingSystem.IsLinux())
       {
-        return new Linux();
+        return new Natives.Linux.Backend();
       }
 
       throw new PlatformNotSupportedException();

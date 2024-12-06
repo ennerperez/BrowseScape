@@ -6,11 +6,11 @@ using Avalonia;
 using Avalonia.Controls;
 using BrowseScape.Core.Interfaces;
 
-namespace BrowseScape.Core.Natives
+namespace BrowseScape.Core.Natives.Windows
 {
 
   [SupportedOSPlatform("windows")]
-  public class Windows : IBackend
+  public class Backend : IBackend
   {
     [StructLayout(LayoutKind.Sequential)]
     private struct RTL_OSVERSIONINFOEX
