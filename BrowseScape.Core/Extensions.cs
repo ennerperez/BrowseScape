@@ -8,6 +8,7 @@ namespace BrowseScape.Core
   {
     public static IServiceCollection AddCore(this IServiceCollection serviceCollection)
     {
+      serviceCollection.AddSingleton<IBrowserService, Services.BrowserService>();
       if (OperatingSystem.IsWindows())
       {
         serviceCollection.AddSingleton<IBackend, Natives.Windows.Backend>();
@@ -15,8 +16,6 @@ namespace BrowseScape.Core
       else if (OperatingSystem.IsMacOS())
       {
         serviceCollection.AddSingleton<IBackend, Natives.MacOS.Backend>();
-        serviceCollection.AddSingleton<IBrowserService, Natives.MacOS.Services.BrowserService>();
-        serviceCollection.AddSingleton<IDefaultBrowserService, Natives.MacOS.Services.DefaultBrowserService>();
       }
       else if (OperatingSystem.IsLinux())
       {

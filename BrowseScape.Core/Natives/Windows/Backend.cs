@@ -1,10 +1,16 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using BrowseScape.Core.Interfaces;
+using BrowseScape.Core.Natives.Windows.Interop;
+using BrowseScape.Core.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace BrowseScape.Core.Natives.Windows
 {
@@ -12,24 +18,15 @@ namespace BrowseScape.Core.Natives.Windows
   [SupportedOSPlatform("windows")]
   public class Backend : IBackend
   {
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RTL_OSVERSIONINFOEX
+
+    private readonly INotificationManager _notificationManager;
+    private readonly ILogger<Backend> _logger;
+
+    public Backend(INotificationManager notificationManager, ILogger<Backend> logger)
     {
-      internal uint dwOSVersionInfoSize;
-      internal uint dwMajorVersion;
-      internal uint dwMinorVersion;
-      internal uint dwBuildNumber;
-      internal uint dwPlatformId;
-
-      [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-      internal string szCSDVersion;
+      _notificationManager = notificationManager;
+      _logger = logger;
     }
-
-    [DllImport("ntdll")] private static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
-    
-    [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
-
-    [DllImport("user32.dll")] private static extern int GetWindowText(nint hWnd, StringBuilder text, int count);
 
     private void FixWindowFrameOnWin10(Window w)
     {
@@ -47,37 +44,109 @@ namespace BrowseScape.Core.Natives.Windows
     public void SetupApp(AppBuilder builder)
     {
       // Fix drop shadow issue on Windows 10
-      var v = new RTL_OSVERSIONINFOEX { dwOSVersionInfoSize = (uint)Marshal.SizeOf<RTL_OSVERSIONINFOEX>() };
-      if (RtlGetVersion(ref v) != 0 || (v.dwMajorVersion >= 10 && v.dwBuildNumber >= 22000))
+      var v = new Ntdll.RTL_OSVERSIONINFOEX { dwOSVersionInfoSize = (uint)Marshal.SizeOf<Ntdll.RTL_OSVERSIONINFOEX>() };
+      if (Ntdll.RtlGetVersion(ref v) != 0 || (v.dwMajorVersion >= 10 && v.dwBuildNumber >= 22000))
       {
         return;
       }
       Window.WindowStateProperty.Changed.AddClassHandler<Window>((w, _) => FixWindowFrameOnWin10(w));
       Control.LoadedEvent.AddClassHandler<Window>((w, _) => FixWindowFrameOnWin10(w));
     }
-
-
     public string GetActiveWindowTitle()
     {
       var result = string.Empty;
       const int NChars = 256;
       var buff = new StringBuilder(NChars);
-      var handle = GetForegroundWindow();
+      var handle = User32.GetForegroundWindow();
 
-      if (GetWindowText(handle, buff, NChars) > 0)
+      if (User32.GetWindowText(handle, buff, NChars) > 0)
       {
         result = buff.ToString();
       }
       return result;
     }
+    public void OpenSettings() => Process.Start(new ProcessStartInfo { FileName = $"ms-settings:defaultapps?registeredAppUser={Metadata.Name}", UseShellExecute = true });
+
+    private string AppOpenUrlCommand => Metadata.Assembly.Replace(".dll", ".exe") + " %1";
+    private string AppKey => $"SOFTWARE\\{Metadata.Name}";
+    private string UrlKey => $"SOFTWARE\\Classes\\{Metadata.Name}URL";
+    private string CapabilityKey => $"SOFTWARE\\{Metadata.Name}\\Capabilities";
+
+    private readonly RegistryKey _registerKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\RegisteredApplications", true);
+    private RegistryKey AppRegKey => Registry.CurrentUser.OpenSubKey(AppKey);
+    private RegistryKey UrlRegKey => Registry.CurrentUser.OpenSubKey(UrlKey);
+
+
+    private RegisterStatus GetRegisterStatus()
+    {
+      return RegisterStatus.Unregistered;
+    }
     public Task RegisterAsync()
     {
-      throw new System.NotImplementedException();
+      _logger.LogInformation("Registering...");
+
+      var appReg = Registry.CurrentUser.CreateSubKey(AppKey);
+      RegisterCapabilities(appReg);
+
+      _registerKey?.SetValue(Metadata.Name, CapabilityKey);
+
+      HandleUrls();
+
+      OpenSettings();
+
+      _logger.LogInformation($"Please set {Metadata.Name} as the default browser in Settings.");
+      _notificationManager.Show(new Notification("Registered as a browser.", $"Please set {Metadata.Name} as the default browser in Settings."));
+      return Task.CompletedTask;
+    }
+
+    private void RegisterCapabilities(RegistryKey appReg)
+    {
+      // Register capabilities.
+      var capabilityReg = appReg.CreateSubKey("Capabilities");
+      capabilityReg.SetValue("ApplicationName", Metadata.Name);
+      capabilityReg.SetValue("ApplicationIcon", $"{Metadata.Assembly.Replace(".dll", ".exe")},0");
+      capabilityReg.SetValue("ApplicationDescription", Metadata.Description);
+
+      // Set up protocols we want to handle.
+      var urlAssocReg = capabilityReg.CreateSubKey("URLAssociations");
+      urlAssocReg.SetValue("http", Metadata.Name + "URL");
+      urlAssocReg.SetValue("https", Metadata.Name + "URL");
+      urlAssocReg.SetValue("ftp", Metadata.Name + "URL");
+    }
+
+    private void HandleUrls()
+    {
+      var handlerReg = Registry.CurrentUser.CreateSubKey(UrlKey);
+      handlerReg.SetValue(string.Empty, Metadata.Name);
+      handlerReg.SetValue("FriendlyTypeName", Metadata.Name);
+      handlerReg.CreateSubKey("shell\\open\\command").SetValue("", AppOpenUrlCommand);
     }
     public Task UnregisterAsync()
     {
       throw new System.NotImplementedException();
     }
+    public async Task RegisterOrUnregisterAsync()
+    {
+      var status = GetRegisterStatus();
 
+      if (status == RegisterStatus.Unregistered)
+      {
+        await RegisterAsync();
+        return;
+      }
+
+      if (status == RegisterStatus.Registered)
+      {
+        await UnregisterAsync();
+        return;
+      }
+
+      if (status == RegisterStatus.Updated)
+      {
+        await UnregisterAsync();// Unregister the old path
+        await RegisterAsync();// Register with the new path
+        _notificationManager.Show(new Notification("Updated location", $"{Metadata.Name} has been re-registered with a new path."));
+      }
+    }
   }
 }

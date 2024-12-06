@@ -25,6 +25,8 @@ namespace BrowseScape
     private static void ReadMetadata()
     {
       Metadata.Name = Assembly.GetAssembly(typeof(Program)).Product();
+      Metadata.Description = Assembly.GetAssembly(typeof(Program)).Description();
+      Metadata.Assembly = Assembly.GetAssembly(typeof(Program))?.Location;
 
       var informationalVersion = Assembly.GetAssembly(typeof(Program)).InformationalVersion();
       var versionMatch = VersionRegex().Match(informationalVersion);
@@ -55,9 +57,16 @@ namespace BrowseScape
     [STAThread]
     public static void Main(string[] args)
     {
-      BuildAvaloniaApp(args)
-        .InitializeAvaloniaApp(args)
-        .StartWithClassicDesktopLifetime(args);
+      try
+      {
+        BuildAvaloniaApp(args)
+          .InitializeAvaloniaApp(args)
+          .StartWithClassicDesktopLifetime(args);
+      }
+      catch (Exception)
+      {
+        // ignore
+      }
     }
 
     internal static bool IsRunning { get; private set; }
@@ -100,7 +109,7 @@ namespace BrowseScape
         .Enrich.WithProcessName()
         .Enrich.WithThreadId()
         .Enrich.WithThreadName()
-        .Enrich.WithProperty("ApplicationName", Metadata.Product);
+        .Enrich.WithProperty("ApplicationName", Metadata.Name);
 
       // Initialize Logger
       Logger = Log.Logger = loggerConfiguration

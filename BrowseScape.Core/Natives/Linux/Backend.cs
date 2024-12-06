@@ -25,5 +25,13 @@ namespace BrowseScape.Core.Natives.Linux
     {
       throw new System.NotImplementedException();
     }
+    public Task RegisterOrUnregisterAsync()
+    {
+      throw new System.NotImplementedException();
+    }
+    public void OpenSettings()
+    {
+      throw new System.NotImplementedException();
+    }
   }
 }
