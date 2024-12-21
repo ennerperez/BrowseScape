@@ -11,6 +11,7 @@ using BrowseScape.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using OS = System.Runtime.OperatingSystemExtensions;
 
 namespace BrowseScape
 {
@@ -59,7 +60,7 @@ namespace BrowseScape
     {
       try
       {
-        BuildAvaloniaApp(args)
+        BuildAvaloniaApp()
           .InitializeAvaloniaApp(args)
           .StartWithClassicDesktopLifetime(args);
       }
@@ -77,6 +78,7 @@ namespace BrowseScape
       Configuration = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
         .AddIniFile("Config.ini")
+        .AddIniFile($"Config.{OS.GetName()}.ini", true)
         .AddEnvironmentVariables()
         .AddCommandLine(args)
         .Build();
@@ -130,7 +132,7 @@ namespace BrowseScape
       Services = collection.BuildServiceProvider();
 
       var backend = Services.GetService<IBackend>();
-      backend.SetupApp(appBuilder);
+      backend?.SetupApp(appBuilder);
 
       IsRunning = true;
 
@@ -144,7 +146,7 @@ namespace BrowseScape
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    private static AppBuilder BuildAvaloniaApp(string[] args)
+    private static AppBuilder BuildAvaloniaApp()
     {
       ReadMetadata();
 

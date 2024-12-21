@@ -1,12 +1,17 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.Notifications;
 using BrowseScape.Core.Interfaces;
+using BrowseScape.Core.Natives.MacOS.Interop;
 using BrowseScape.Core.Types;
 using Microsoft.Extensions.Logging;
+using MonoMac.CoreGraphics;
+using MonoMac.Foundation;
+using MonoMac.ObjCRuntime;
 
 namespace BrowseScape.Core.Natives.MacOS
 {
@@ -34,14 +39,18 @@ namespace BrowseScape.Core.Natives.MacOS
 
       /*RegistryKey? appReg = Registry.CurrentUser.CreateSubKey(AppKey);
       RegisterCapabilities(appReg);
-      _registerKey?.SetValue(_appID, CapabilityKey);
-      HandleUrls();*/
+      _registerKey?.SetValue(_appID, CapabilityKey);*/
+      HandleUrls();
 
       OpenSettings();
 
       _logger.LogInformation($"Please set {Metadata.Name} as the default browser in Settings.");
       _notificationManager.Show(new Notification("Registered as a browser.", $"Please set {Metadata.Name} as the default browser in Settings."));
       return Task.CompletedTask;
+    }
+
+    private void HandleUrls()
+    {
     }
     public Task UnregisterAsync()
     {
@@ -82,6 +91,17 @@ namespace BrowseScape.Core.Natives.MacOS
     }
     public string GetActiveWindowTitle()
     {
+      var windowInfo = QuartzCore.CGWindowListCopyWindowInfo(CGWindowListOption.OnScreenOnly, 0);
+      var values = (MonoMac.Foundation.NSArray)Runtime.GetNSObject<NSArray>(windowInfo);
+
+      var windowList = new List<QuartzCore.kCGWindow>();
+      for (ulong i = 0, len = values.Count; i < len; i++)
+      {
+        var window = Runtime.GetNSObject(values.ValueAt(i));
+        var item = new QuartzCore.kCGWindow();
+        item.Read(window);
+        windowList.Add(item);
+      }
       throw new System.NotImplementedException();
     }
     public void OpenSettings() => Process.Start(new ProcessStartInfo { FileName = "x-apple.systempreferences:com.apple.Desktop-Settings.extension", UseShellExecute = true });

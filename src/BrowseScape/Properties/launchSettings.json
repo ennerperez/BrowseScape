@@ -11,7 +11,7 @@
     },
     "open": {
       "commandName": "Project",
-      "commandLineArgs": "example.org"
+      "commandLineArgs": "maps.google.com"
     }
   }
 }

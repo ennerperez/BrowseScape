@@ -4,7 +4,7 @@ namespace BrowseScape.Core.Interfaces
 {
   public interface IBrowserService
   {
-    Task LaunchAsync(string url);
+    Task<bool> LaunchAsync(string url);
 
   }
 }

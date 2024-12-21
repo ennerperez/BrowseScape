@@ -22,7 +22,7 @@ namespace BrowseScape.Core.Services
       _logger = logger;
     }
 
-    public Task LaunchAsync(string url)
+    public Task<bool> LaunchAsync(string url)
     {
       try
       {
@@ -78,8 +78,9 @@ namespace BrowseScape.Core.Services
       catch (Exception e)
       {
         _logger.LogError(e, "Failed to launch browser, {Message}", e.Message);
+        return Task.FromResult(false);
       }
-      return Task.CompletedTask;
+      return Task.FromResult(true);
     }
   }
 }
