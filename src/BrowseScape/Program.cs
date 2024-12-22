@@ -11,7 +11,7 @@ using BrowseScape.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using OS = System.Runtime.OperatingSystemExtensions;
+using OS=System.Runtime.OperatingSystemExtensions;
 
 namespace BrowseScape
 {
@@ -49,7 +49,7 @@ namespace BrowseScape
     internal static IConfiguration Configuration { get; private set; }
 
     public static bool IsSingleViewLifetime =>
-      System.Environment.GetCommandLineArgs()
+      Environment.GetCommandLineArgs()
         .Any(a => a == "--fbdev" || a == "--drm");
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -58,22 +58,17 @@ namespace BrowseScape
     [STAThread]
     public static void Main(string[] args)
     {
-      try
-      {
-        BuildAvaloniaApp()
-          .InitializeAvaloniaApp(args)
-          .StartWithClassicDesktopLifetime(args);
-      }
-      catch (Exception)
-      {
-        // ignore
-      }
+      BuildAvaloniaApp()
+        .InitializeAvaloniaApp(args)
+        .StartWithClassicDesktopLifetime(args);
     }
 
     internal static bool IsRunning { get; private set; }
     private static AppBuilder InitializeAvaloniaApp(this AppBuilder appBuilder, string[] args)
     {
       AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledException;
+
+      ReadMetadata();
 
       Configuration = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
@@ -122,9 +117,9 @@ namespace BrowseScape
       var collection = new ServiceCollection();
       collection.AddSingleton(Configuration);
       collection.AddLogging(c => c.AddSerilog(Logger, true));
-      
+
       collection.AddSingleton<INotificationManager, WindowNotificationManager>();
-      
+
       // Core Services
       collection.AddCore();
 
@@ -147,23 +142,15 @@ namespace BrowseScape
 
     // Avalonia configuration, don't remove; also used by visual designer.
     private static AppBuilder BuildAvaloniaApp()
-    {
-      ReadMetadata();
-
-      var builder = AppBuilder.Configure<App>()
+      => AppBuilder.Configure<App>()
         .UsePlatformDetect()
         .WithInterFont()
-        .LogToTrace();
-
-      builder.ConfigureFonts(manager =>
-      {
-        var monospace = new EmbeddedFontCollection(
-          new Uri($"fonts:{Metadata.Name}", UriKind.Absolute),
-          new Uri($"avares://{Metadata.Name}/Resources/Fonts", UriKind.Absolute));
-        manager.AddFontCollection(monospace);
-      });
-
-      return builder;
-    }
+        .ConfigureFonts(manager =>
+        {
+          var monospace = new EmbeddedFontCollection(
+            new Uri($"fonts:{Metadata.Name}", UriKind.Absolute),
+            new Uri($"avares://{Metadata.Name}/Resources/Fonts", UriKind.Absolute));
+          manager.AddFontCollection(monospace);
+        }).LogToTrace();
   }
 }

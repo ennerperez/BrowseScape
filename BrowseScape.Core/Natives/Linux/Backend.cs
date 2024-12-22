@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Media.Imaging;
 using BrowseScape.Core.Interfaces;
 
 namespace BrowseScape.Core.Natives.Linux
@@ -11,7 +12,7 @@ namespace BrowseScape.Core.Natives.Linux
   {
     public void SetupApp(AppBuilder builder)
     {
-      builder.With(new X11PlatformOptions() { EnableIme = true, });
+      builder.With(new X11PlatformOptions { EnableIme = true, });
     }
     public string GetActiveWindowTitle()
     {
@@ -26,6 +27,10 @@ namespace BrowseScape.Core.Natives.Linux
       throw new System.NotImplementedException();
     }
     public Task RegisterOrUnregisterAsync()
+    {
+      throw new System.NotImplementedException();
+    }
+    public Bitmap GetAppIcon(string path)
     {
       throw new System.NotImplementedException();
     }

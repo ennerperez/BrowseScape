@@ -35,7 +35,7 @@ namespace BrowseScape.Core.Natives.MacOS.Interop
 
       internal void Read(NSObject source)
       {
-        var props = this.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+        var props = GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
         foreach (var prop in props)
         {
           var key = new NSString(prop.Name);

@@ -5,10 +5,11 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.Notifications;
+using Avalonia.Media.Imaging;
 using BrowseScape.Core.Interfaces;
-using BrowseScape.Core.Natives.MacOS.Interop;
 using BrowseScape.Core.Types;
 using Microsoft.Extensions.Logging;
+using BrowseScape.Core.Natives.MacOS.Interop;
 using MonoMac.CoreGraphics;
 using MonoMac.Foundation;
 using MonoMac.ObjCRuntime;
@@ -19,7 +20,7 @@ namespace BrowseScape.Core.Natives.MacOS
   [SupportedOSPlatform("macOS")]
   public class Backend : IBackend
   {
-    
+
     private readonly INotificationManager _notificationManager;
     private readonly ILogger<Backend> _logger;
 
@@ -79,9 +80,13 @@ namespace BrowseScape.Core.Natives.MacOS
         _notificationManager.Show(new Notification("Updated location", $"{Metadata.Name} has been re-registered with a new path."));
       }
     }
+    public Bitmap GetAppIcon(string path)
+    {
+      throw new System.NotImplementedException();
+    }
     public void SetupApp(AppBuilder builder)
     {
-      builder.With(new MacOSPlatformOptions() { DisableDefaultApplicationMenuItems = true, });
+      builder.With(new MacOSPlatformOptions { DisableDefaultApplicationMenuItems = true, });
 
       var customPathFile = Path.Combine(IBackend.DataDir, "PATH");
       if (File.Exists(customPathFile))
@@ -91,8 +96,9 @@ namespace BrowseScape.Core.Natives.MacOS
     }
     public string GetActiveWindowTitle()
     {
+#if MACOS
       var windowInfo = QuartzCore.CGWindowListCopyWindowInfo(CGWindowListOption.OnScreenOnly, 0);
-      var values = (MonoMac.Foundation.NSArray)Runtime.GetNSObject<NSArray>(windowInfo);
+      var values = (NSArray)Runtime.GetNSObject<NSArray>(windowInfo);
 
       var windowList = new List<QuartzCore.kCGWindow>();
       for (ulong i = 0, len = values.Count; i < len; i++)
@@ -102,6 +108,7 @@ namespace BrowseScape.Core.Natives.MacOS
         item.Read(window);
         windowList.Add(item);
       }
+#endif
       throw new System.NotImplementedException();
     }
     public void OpenSettings() => Process.Start(new ProcessStartInfo { FileName = "x-apple.systempreferences:com.apple.Desktop-Settings.extension", UseShellExecute = true });

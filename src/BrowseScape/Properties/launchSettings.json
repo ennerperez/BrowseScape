@@ -1,6 +1,9 @@
 ﻿{
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
+    "selector": {
+      "commandName": "Project"
+    },
     "register": {
       "commandName": "Project",
       "commandLineArgs": "--register"

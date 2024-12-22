@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -11,6 +14,7 @@ using BrowseScape.Core.Natives.Windows.Interop;
 using BrowseScape.Core.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using Bitmap=Avalonia.Media.Imaging.Bitmap;
 
 namespace BrowseScape.Core.Natives.Windows
 {
@@ -103,27 +107,40 @@ namespace BrowseScape.Core.Natives.Windows
     {
       // Register capabilities.
       var capabilityReg = appReg.CreateSubKey("Capabilities");
+      if (capabilityReg == null)
+      {
+        return;
+      }
       capabilityReg.SetValue("ApplicationName", Metadata.Name);
       capabilityReg.SetValue("ApplicationIcon", $"{Metadata.Assembly.Replace(".dll", ".exe")},0");
       capabilityReg.SetValue("ApplicationDescription", Metadata.Description);
 
       // Set up protocols we want to handle.
       var urlAssocReg = capabilityReg.CreateSubKey("URLAssociations");
+      if (urlAssocReg == null)
+      {
+        return;
+      }
       urlAssocReg.SetValue("http", Metadata.Name + "URL");
       urlAssocReg.SetValue("https", Metadata.Name + "URL");
       urlAssocReg.SetValue("ftp", Metadata.Name + "URL");
+      urlAssocReg.SetValue("ftps", Metadata.Name + "URL");
     }
 
     private void HandleUrls()
     {
       var handlerReg = Registry.CurrentUser.CreateSubKey(UrlKey);
+      if (handlerReg == null)
+      {
+        return;
+      }
       handlerReg.SetValue(string.Empty, Metadata.Name);
       handlerReg.SetValue("FriendlyTypeName", Metadata.Name);
-      handlerReg.CreateSubKey("shell\\open\\command").SetValue("", AppOpenUrlCommand);
+      handlerReg.CreateSubKey("shell\\open\\command")?.SetValue("", AppOpenUrlCommand);
     }
     public Task UnregisterAsync()
     {
-      throw new System.NotImplementedException();
+      throw new NotImplementedException();
     }
     public async Task RegisterOrUnregisterAsync()
     {
@@ -147,6 +164,23 @@ namespace BrowseScape.Core.Natives.Windows
         await RegisterAsync();// Register with the new path
         _notificationManager.Show(new Notification("Updated location", $"{Metadata.Name} has been re-registered with a new path."));
       }
+    }
+
+    public Bitmap GetAppIcon(string path)
+    {
+      path = Environment.ExpandEnvironmentVariables(path);
+      if (!File.Exists(path))
+      {
+        return null;
+      }
+      var icon = Icon.ExtractAssociatedIcon(path);
+      if (icon != null)
+      {
+        using var serializer = new MemoryStream();
+        icon.Save(serializer);
+        return new Bitmap(serializer);
+      }
+      return null;
     }
   }
 }

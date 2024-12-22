@@ -1,0 +1,33 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:BrowseScape.ViewModels"
+    mc:Ignorable="d"
+    d:DesignWidth="640"
+    d:DesignHeight="480"
+    x:Class="BrowseScape.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
+    Title="BrowseScape">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+    <ItemsRepeater ItemsSource="{Binding Browsers}" >
+        <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+                <Border Margin="0,10,0,0"
+                        CornerRadius="5"
+                        BorderBrush="Blue" BorderThickness="1"
+                        Padding="5">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Id}"/>
+                        <Image Source="{Binding Icon}" Width="64" />
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
+        </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
+</Window>

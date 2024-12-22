@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace BrowseScape
+namespace BrowseScape.Views
 {
   public partial class MainWindow : Window
   {
