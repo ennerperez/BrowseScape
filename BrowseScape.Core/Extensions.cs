@@ -13,14 +13,14 @@ namespace BrowseScape.Core
       {
         serviceCollection.AddSingleton<IBackend, Natives.Windows.Backend>();
       }
-      // else if (OperatingSystem.IsMacOS())
-      // {
-      //   serviceCollection.AddSingleton<IBackend, Natives.MacOS.Backend>();
-      // }
-      // else if (OperatingSystem.IsLinux())
-      // {
-      //   serviceCollection.AddSingleton<IBackend, Natives.Linux.Backend>();
-      // }
+      else if (OperatingSystem.IsMacOS())
+      {
+        serviceCollection.AddSingleton<IBackend, Natives.MacOS.Backend>();
+      }
+      else if (OperatingSystem.IsLinux())
+      {
+        serviceCollection.AddSingleton<IBackend, Natives.Linux.Backend>();
+      }
       return serviceCollection;
     }
   }

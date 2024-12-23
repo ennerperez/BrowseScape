@@ -8,11 +8,11 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>false</Deterministic>
     <AvaloniaVersion>11.2.3</AvaloniaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup Label="Avalonia">
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/>
-    <PackageReference Include="System.Drawing.Common" Version="8.0.11"/>
     <PackageReference Include="MonoMac.Core" Version="0.0.23728"/>
   </ItemGroup>
 

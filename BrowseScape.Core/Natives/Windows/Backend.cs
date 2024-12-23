@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -169,18 +167,8 @@ namespace BrowseScape.Core.Natives.Windows
     public Bitmap GetAppIcon(string path)
     {
       path = Environment.ExpandEnvironmentVariables(path);
-      if (!File.Exists(path))
-      {
         return null;
-      }
-      var icon = Icon.ExtractAssociatedIcon(path);
-      if (icon != null)
-      {
-        using var serializer = new MemoryStream();
-        icon.Save(serializer);
-        return new Bitmap(serializer);
-      }
-      return null;
+      
     }
   }
 }

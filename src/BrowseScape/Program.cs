@@ -5,9 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Avalonia.Controls.Notifications;
-using Avalonia.Media.Fonts;
+using Avalonia.Svg.Skia;
 using BrowseScape.Core;
-using BrowseScape.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -43,9 +42,8 @@ namespace BrowseScape
 
     #endregion
 
-    internal static IBackend Backend { get; private set; }
     internal static ILogger Logger { get; private set; }
-    internal static ServiceProvider Services { get; set; }
+    internal static ServiceProvider Services { get; private set; }
     internal static IConfiguration Configuration { get; private set; }
 
     public static bool IsSingleViewLifetime =>
@@ -62,7 +60,6 @@ namespace BrowseScape
         .InitializeAvaloniaApp(args)
         .StartWithClassicDesktopLifetime(args);
     }
-
     internal static bool IsRunning { get; private set; }
     private static AppBuilder InitializeAvaloniaApp(this AppBuilder appBuilder, string[] args)
     {
@@ -126,8 +123,8 @@ namespace BrowseScape
       // Creates a ServiceProvider containing services from the provided IServiceCollection
       Services = collection.BuildServiceProvider();
 
-      var backend = Services.GetService<IBackend>();
-      backend?.SetupApp(appBuilder);
+      //var backend = Services.GetService<IBackend>();
+      //backend?.SetupApp(appBuilder);
 
       IsRunning = true;
 
@@ -139,18 +136,25 @@ namespace BrowseScape
       var ex = (Exception)e.ExceptionObject;
       Logger?.Fatal(ex, "{Message}", ex.Message);
     }
-
+    
     // Avalonia configuration, don't remove; also used by visual designer.
     private static AppBuilder BuildAvaloniaApp()
-      => AppBuilder.Configure<App>()
+    {
+      GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+      GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+      var buidler = AppBuilder.Configure<App>()
         .UsePlatformDetect()
         .WithInterFont()
-        .ConfigureFonts(manager =>
-        {
-          var monospace = new EmbeddedFontCollection(
-            new Uri($"fonts:{Metadata.Name}", UriKind.Absolute),
-            new Uri($"avares://{Metadata.Name}/Resources/Fonts", UriKind.Absolute));
-          manager.AddFontCollection(monospace);
-        }).LogToTrace();
+        // .ConfigureFonts(manager =>
+        // {
+        //   var monospace = new EmbeddedFontCollection(
+        //     new Uri($"fonts:{Metadata.Name}", UriKind.Absolute),
+        //     new Uri($"avares://{Metadata.Name}/Assets/Fonts", UriKind.Absolute));
+        //   manager.AddFontCollection(monospace);
+        // })
+        .UseSkia()
+        .LogToTrace();
+      return buidler;
+    }
   }
 }

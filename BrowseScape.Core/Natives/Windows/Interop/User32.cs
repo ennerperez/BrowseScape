@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BrowseScape.Core.Natives.Windows.Interop
@@ -9,5 +10,8 @@ namespace BrowseScape.Core.Natives.Windows.Interop
     internal static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] 
     internal static extern int GetWindowText(nint hWnd, StringBuilder text, int count);
+    
+    [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
+    internal static extern IntPtr CopyImage(HandleRef hImage, int uType, int cxDesired, int cyDesired, int fuFlags);
   }
 }

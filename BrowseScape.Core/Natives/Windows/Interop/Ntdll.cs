@@ -15,8 +15,10 @@ namespace BrowseScape.Core.Natives.Windows.Interop
 
       [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
       internal string szCSDVersion;
-      
+
     }
-    [DllImport("ntdll")] internal static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
+
+    [DllImport("ntdll")]
+    internal static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
   }
 }

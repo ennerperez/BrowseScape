@@ -22,61 +22,61 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Assets\App.ico" />
-    <AvaloniaResource Include="Resources/Fonts/*" />
-    <AvaloniaResource Include="Resources/Grammars/*" />
-    <AvaloniaResource Include="Resources/Images/*" />
-    <AvaloniaResource Include="Resources/Images/ExternalToolIcons/*" />
-    <AvaloniaResource Include="Resources/Images/ExternalToolIcons/JetBrains/*" />
-    <AvaloniaResource Include="Resources/Images/ShellIcons/*" />
+    <AvaloniaResource Include="Assets/App.ico"/>
+    <AvaloniaResource Include="Assets/Fonts/*"/>
+    <AvaloniaResource Include="Assets/Fonts/**/*"/>
+    <AvaloniaResource Include="Assets/Images/*"/>
+    <AvaloniaResource Include="Assets/Images/**/*"/>
   </ItemGroup>
 
   <ItemGroup Label="Avalonia">
-    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/>
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)"/>
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/>
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)"/>
     <!-- Extras -->
-    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.1.0" />
-    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-    
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.1.0"/>
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5"/>
+    <PackageReference Include="SvgToXamlConverter" Version="11.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="8.0.0"/>
   </ItemGroup>
 
   <ItemGroup Label="Serilog">
-    <PackageReference Include="Serilog" Version="4.1.0" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog" Version="4.1.0"/>
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0"/>
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4"/>
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0"/>
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+    <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0"/>
+    <PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0"/>
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1"/>
+    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0"/>
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="BrowseScape" />
-    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+    <TrimmerRootAssembly Include="BrowseScape"/>
+    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent"/>
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <LinkerArg Include="-mmacosx-version-min=11.0" Condition="'$(Configuration)' == 'Release'" />
+    <LinkerArg Include="-mmacosx-version-min=11.0" Condition="'$(Configuration)' == 'Release'"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BrowseScape.Core\BrowseScape.Core.csproj" />
+    <ProjectReference Include="..\..\BrowseScape.Core\BrowseScape.Core.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -87,17 +87,6 @@
       <DependentUpon>Config.ini</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Views\MainWindow.axaml.cs">
-      <DependentUpon>MainWindow.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Info.plist" />
   </ItemGroup>
 
 </Project>

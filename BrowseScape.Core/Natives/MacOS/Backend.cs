@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -9,10 +8,6 @@ using Avalonia.Media.Imaging;
 using BrowseScape.Core.Interfaces;
 using BrowseScape.Core.Types;
 using Microsoft.Extensions.Logging;
-using BrowseScape.Core.Natives.MacOS.Interop;
-using MonoMac.CoreGraphics;
-using MonoMac.Foundation;
-using MonoMac.ObjCRuntime;
 
 namespace BrowseScape.Core.Natives.MacOS
 {

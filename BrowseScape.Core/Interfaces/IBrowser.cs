@@ -1,10 +1,10 @@
-﻿using Avalonia.Media.Imaging;
-
-namespace BrowseScape.Core.Interfaces
+﻿namespace BrowseScape.Core.Interfaces
 {
   public interface IBrowser
   {
-    Bitmap Icon { get; set; }
     string Id { get; set; }
+    string Name { get; set; }
+    string Icon { get; set; }
+    bool IsInstalled { get; set; }
   }
 }

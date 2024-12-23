@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -33,6 +32,7 @@ namespace BrowseScape
       {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+
           if (desktop.Args != null && desktop.Args.Length != 0 && s_registerCommand.Contains(desktop.Args[0], StringComparer.OrdinalIgnoreCase))
           {
             var dbs = Program.Services.GetService<IBackend>();
@@ -58,20 +58,22 @@ namespace BrowseScape
             return;
           }
 
-          var backend = Program.Services.GetService<IBackend>();
           var configs = Program.Services.GetService<IConfiguration>();
           var viewModel = new MainWindowViewModel { Browsers = [] };
 
           var browsers = new Dictionary<string, string>();
           configs.Bind("browsers", browsers);
-          var items = browsers.Select(m =>
-            new Browser
-            {
-              Id = m.Key, IsInstalled = File.Exists(Environment.ExpandEnvironmentVariables(m.Value)),
-              //Icon = backend.GetAppIcon(m.Value)
-            }
-          ).Where(m => m.IsInstalled);
-          viewModel.Browsers = new ObservableCollection<Browser>(items);
+          {
+            var items = browsers.Select(m =>
+              new Browser
+              {
+                Id = m.Key,
+                IsInstalled = File.Exists(Environment.ExpandEnvironmentVariables(m.Value)),
+                Icon = "/Assets/Images/Browsers/Chronium.svg"
+              }
+            ).Where(m => m.IsInstalled);
+            viewModel.Browsers = new ObservableCollection<Browser>(items);
+          }
 
           // Line below is needed to remove Avalonia data validation.
           // Without this line you will get duplicate validations from both Avalonia and CT
@@ -83,7 +85,7 @@ namespace BrowseScape
       {
         Program.Logger.Error(e, "An error occured during initialization.");
       }
-      
+
       base.OnFrameworkInitializationCompleted();
     }
   }

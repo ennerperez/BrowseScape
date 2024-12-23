@@ -1,5 +1,4 @@
-﻿using Avalonia.Media.Imaging;
-using BrowseScape.Core.Interfaces;
+﻿using BrowseScape.Core.Interfaces;
 
 namespace BrowseScape.Core.Models
 {
@@ -7,7 +6,7 @@ namespace BrowseScape.Core.Models
   {
     public string Id { get; set; }
     public string Name { get; set; }
-    public Bitmap Icon { get; set; }
+    public string Icon { get; set; }
     public bool IsInstalled { get; set; }
   }
 }
