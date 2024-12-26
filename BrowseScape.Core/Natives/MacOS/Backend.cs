@@ -79,15 +79,9 @@ namespace BrowseScape.Core.Natives.MacOS
     {
       throw new System.NotImplementedException();
     }
-    public void SetupApp(AppBuilder builder)
+    public static void SetupApp(AppBuilder builder)
     {
-      builder.With(new MacOSPlatformOptions { DisableDefaultApplicationMenuItems = true, });
-
-      var customPathFile = Path.Combine(IBackend.DataDir, "PATH");
-      if (File.Exists(customPathFile))
-      {
-        IBackend.CustomPathEnv = File.ReadAllText(customPathFile).Trim();
-      }
+      builder.With(new MacOSPlatformOptions { DisableDefaultApplicationMenuItems = true });
     }
     public string GetActiveWindowTitle()
     {

@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
+using Avalonia.Input;
 using BrowseScape.Core.Models;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BrowseScape.ViewModels
 {
@@ -13,13 +15,13 @@ namespace BrowseScape.ViewModels
           Browsers.Add(new Browser()
           {
             Icon = "/Assets/Images/Browsers/Chronium.svg",
-            Id = "Avalonia",
-            Name = "Avalonia",
-            IsInstalled = true
+            Name = "Avalonia"
           });
         }
     }
     public ObservableCollection<Browser> Browsers { get; set; }
+    
+    public RelayCommand<TappedEventArgs> ItemTappedCommand { get; set; }
   }
 
 }

@@ -30,7 +30,7 @@ namespace BrowseScape.Core.Natives.Windows
       _logger = logger;
     }
 
-    private void FixWindowFrameOnWin10(Window w)
+    private static void FixWindowFrameOnWin10(Window w)
     {
       switch (w.WindowState)
       {
@@ -43,7 +43,7 @@ namespace BrowseScape.Core.Natives.Windows
           break;
       }
     }
-    public void SetupApp(AppBuilder builder)
+    public static void SetupApp(AppBuilder builder)
     {
       // Fix drop shadow issue on Windows 10
       var v = new Ntdll.RTL_OSVERSIONINFOEX { dwOSVersionInfoSize = (uint)Marshal.SizeOf<Ntdll.RTL_OSVERSIONINFOEX>() };

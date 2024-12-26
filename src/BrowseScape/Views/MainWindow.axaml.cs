@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using BrowseScape.Core;
 
 namespace BrowseScape.Views
 {
@@ -8,5 +10,10 @@ namespace BrowseScape.Views
     {
       InitializeComponent();
     }
+    private void InputElement_OnTapped(object sender, TappedEventArgs e)
+    {
+
+    }
+
   }
 }

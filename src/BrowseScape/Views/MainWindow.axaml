@@ -6,7 +6,7 @@
     xmlns:vm="clr-namespace:BrowseScape.ViewModels"
     mc:Ignorable="d"
     d:DesignWidth="640"
-    d:DesignHeight="480"
+    d:DesignHeight="120"
     x:Class="BrowseScape.Views.MainWindow"
     x:DataType="vm:MainWindowViewModel"
     Title="BrowseScape">
@@ -15,18 +15,23 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
-    <StackPanel Margin="16" Orientation="Horizontal">
-        <ItemsRepeater ItemsSource="{Binding Browsers}">
-            <ItemsRepeater.ItemTemplate>
+    <StackPanel Margin="16" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <ItemsRepeater ItemsSource="{Binding Browsers}" Tapped="InputElement_OnTapped" >
+            <ItemsRepeater.Layout>
+                <StackLayout Spacing="48" Orientation="Horizontal" />
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate >
                 <DataTemplate>
-                    <Border Width="74"
-                        Margin="0,10,0,0"
-                        CornerRadius="5"
-                        BorderBrush="Blue"
-                        BorderThickness="1"
-                        Padding="5">
-                        <StackPanel Orientation="Horizontal">
-                            <Svg Path="{Binding Icon}" Width="64" Height="64"></Svg>
+                    <Border
+                        Width="64"
+                        Margin="0,0,0,0"
+                        Padding="0">
+                        <StackPanel Orientation="Vertical">
+                            <Svg Path="{Binding Icon}" Width="48" Height="48"></Svg>
+                            <TextBlock TextAlignment="Center"
+                                Text="{Binding Name}"
+                                Margin="0,16,0,0">
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
