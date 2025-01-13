@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Notifications;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -43,62 +43,45 @@ namespace BrowseScape
       Metadata.Assembly = Assembly.GetAssembly(typeof(App))?.Location;
 
       var informationalVersion = Assembly.GetAssembly(typeof(App)).InformationalVersion();
-      var versionMatch = VersionRegex().Match(informationalVersion);
-      if (versionMatch.Success)
+      if (informationalVersion != null)
       {
-        Metadata.Version = Version.Parse(versionMatch.Groups[1].Value);
-        Metadata.Tag = versionMatch.Groups[2].Value;
-        Metadata.Commit = versionMatch.Groups[3].Value?.Substring(0, 7);
-        Metadata.DisplayVersion = string.Join("-", Metadata.Version.ToString(3), Metadata.Tag);
+        var versionMatch = VersionRegex().Match(informationalVersion);
+        if (versionMatch.Success)
+        {
+          Metadata.Version = Version.Parse(versionMatch.Groups[1].Value);
+          Metadata.Tag = versionMatch.Groups[2].Value;
+          Metadata.Commit = versionMatch.Groups[3].Value.Substring(0, 7);
+          Metadata.DisplayVersion = string.Join("-", Metadata.Version.ToString(3), Metadata.Tag);
+        }
       }
       Metadata.Environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
     }
 
     #endregion
 
-    internal static ILogger Logger { get; private set; }
-    internal static ServiceProvider Services { get; private set; }
-    internal static IConfiguration Configuration { get; private set; }
+    public static ILogger? Logger { get; private set; }
+    public static ServiceProvider? Services { get; private set; }
+    public static IConfiguration? Configuration { get; private set; }
 
     public static bool IsSingleViewLifetime =>
       Environment.GetCommandLineArgs()
         .Any(a => a == "--fbdev" || a == "--drm");
 
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-
       ReadMetadata();
-
-      Configuration = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddIniFile("Config.ini")
-        .AddIniFile($"Config.{OS.GetName()}.ini", true)
-        .AddEnvironmentVariables()
-        .AddCommandLine(args)
-        .Build();
 
       // Initialize Logger
       var loggerConfiguration = new LoggerConfiguration()
         .WriteTo.Async(a =>
         {
-#if DEBUG
-          a.Console();
-          a.File(
-            path: $"../../../Logs/.log",
-            rollingInterval: RollingInterval.Day,
-            flushToDiskInterval: TimeSpan.FromSeconds(30),
-            shared: true
-          );
-#else
           a.File(
             path: Path.Combine(OS.GetDataDir(), "Logs/.log"),
             rollingInterval: RollingInterval.Day,
             flushToDiskInterval: TimeSpan.FromSeconds(30),
             shared: true
           );
-#endif
-
         })
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
@@ -113,38 +96,43 @@ namespace BrowseScape
         .WriteTo.Trace()
         .CreateLogger();
 
-      // Register all the services needed for the application to run
-      var collection = new ServiceCollection();
-      collection.AddSingleton(Configuration);
-      collection.AddLogging(c => c.AddSerilog(Logger, true));
-
-      collection.AddSingleton<INotificationManager, WindowNotificationManager>();
-
-      // Core Services
-      collection.AddCore();
-
-      // Creates a ServiceProvider containing services from the provided IServiceCollection
-      Services = collection.BuildServiceProvider();
-
-      IsRunning = true;
-
-      AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+      System.Runtime.Exceptions.UnhandledException += (_, e) =>
       {
         var ex = e.ExceptionObject as Exception;
-        Logger?.Fatal(ex, "{Message}", ex?.Message);
+        Logger.Fatal(ex, "{Message}", ex?.Message);
       };
 
-      TaskScheduler.UnobservedTaskException += (_, e) =>
-      {
-        var ex = e.Exception as Exception;
-        Logger?.Fatal(ex, "{Message}", ex?.Message);
-        e.SetObserved();
-      };
+      AppBuilder? builder;
 
       try
       {
-        BuildAvaloniaApp()
-          .StartWithClassicDesktopLifetime(args);
+
+        builder = BuildAvaloniaApp(args);
+        IsRunning = true;
+
+        if (args.Length != 0)
+        {
+          if (s_registerCommand.Contains(args[0], StringComparer.OrdinalIgnoreCase))
+          {
+            builder.StartWithRegisterLifetime();
+          }
+          else if (s_unregisterCommand.Contains(args[0], StringComparer.OrdinalIgnoreCase))
+          {
+            builder.StartWithUnregisterLifetime();
+          }
+          else
+          {
+            var results = await builder.StartWithOpenerLifetime(args);
+            if (!results.Any())
+            {
+              builder.StartWithClassicDesktopLifetime(args);
+            }
+          }
+        }
+        else
+        {
+          builder.StartWithClassicDesktopLifetime(args);
+        }
       }
       catch (Exception e)
       {
@@ -155,7 +143,7 @@ namespace BrowseScape
     internal static bool IsRunning { get; private set; }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    private static AppBuilder BuildAvaloniaApp()
+    private static AppBuilder BuildAvaloniaApp(string[] args)
     {
       GC.KeepAlive(typeof(SvgImageExtension).Assembly);
       GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
@@ -172,6 +160,27 @@ namespace BrowseScape
         .UseSkia()
         .LogToTrace();
 
+      var assemblyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
+      Configuration = new ConfigurationBuilder()
+        .SetBasePath(assemblyPath ?? Directory.GetCurrentDirectory())
+        .AddIniFile("Config.ini")
+        .AddIniFile($"Config.{OS.GetName()}.ini", true)
+        .AddEnvironmentVariables()
+        .AddCommandLine(args)
+        .Build();
+
+      // Register all the services needed for the application to run
+      var collection = new ServiceCollection();
+      collection.AddSingleton(Configuration);
+      collection.AddLogging(c => c.AddSerilog(Logger, true));
+
+      // Core Services
+      collection.AddCore(builder);
+
+      // Creates a ServiceProvider containing services from the provided IServiceCollection
+      Services = collection.BuildServiceProvider();
+
+      // OS Setup
       if (OperatingSystem.IsLinux())
       {
         Core.Natives.Linux.Backend.SetupApp(builder);
@@ -195,16 +204,45 @@ namespace BrowseScape
     private static readonly string[] s_registerCommand = ["--register", "-r"];
     private static readonly string[] s_unregisterCommand = ["--unregister", "-u"];
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
       try
       {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-          if ((await TryLaunchedAsRegister(desktop))) return;
-          if ((await TryLaunchedAsUnregister(desktop))) return;
-          if ((await TryLaunchedAsOpener(desktop))) return;
-          await TryLaunchedAsNormal(desktop);
+          var configs = Services?.GetService<IConfiguration>();
+          var viewModel = new MainWindowViewModel { Browsers = [] };
+
+          var browsers = new Dictionary<string, Browser>();
+          if (configs != null)
+          {
+            configs.Bind("browsers", browsers);
+          }
+          foreach (var browser in browsers)
+          {
+            browser.Value.Id = browser.Key;
+            if (!string.IsNullOrWhiteSpace(browser.Value.Icon))
+            {
+              browser.Value.Icon = browser.Value.Icon;
+            }
+          }
+          viewModel.Browsers = new ObservableCollection<Browser>(browsers.Values.Where(m => m.IsInstalled));
+          viewModel.ItemTappedCommand = new RelayCommand<TappedEventArgs>(ItemTapped);
+
+          // Line below is needed to remove Avalonia data validation.
+          // Without this line you will get duplicate validations from both Avalonia and CT
+          BindingPlugins.DataValidators.RemoveAt(0);
+          desktop.MainWindow = new MainWindow
+          {
+            MinHeight = 120,
+            MinWidth = viewModel.Browsers.Count * 120,
+            Height = 120,
+            Width = viewModel.Browsers.Count * 120,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            DataContext = viewModel
+          };
+
+          return;
         }
       }
       catch (Exception e)
@@ -215,78 +253,44 @@ namespace BrowseScape
       base.OnFrameworkInitializationCompleted();
     }
 
-    private async Task<bool> TryLaunchedAsRegister(IClassicDesktopStyleApplicationLifetime desktop)
+    private void ItemTapped(TappedEventArgs? obj)
     {
-      if (desktop.Args != null && desktop.Args.Length != 0 && s_registerCommand.Contains(desktop.Args[0], StringComparer.OrdinalIgnoreCase))
+      var source = obj?.Source;
+    }
+  }
+
+  public static class AppBuilderExtensions
+  {
+
+    public static async void StartWithRegisterLifetime(this AppBuilder builder)
+    {
+      var dbs = App.Services?.GetService<IBackend>();
+      if (dbs != null)
       {
-        var dbs = Services.GetService<IBackend>();
         await dbs.RegisterAsync();
-        desktop.Shutdown(0);
-        return true;
       }
-      return false;
     }
-    private async Task<bool> TryLaunchedAsUnregister(IClassicDesktopStyleApplicationLifetime desktop)
+    public static async void StartWithUnregisterLifetime(this AppBuilder builder)
     {
-      if (desktop.Args != null && desktop.Args.Length != 0 && s_unregisterCommand.Contains(desktop.Args[0], StringComparer.OrdinalIgnoreCase))
+      var dbs = App.Services?.GetService<IBackend>();
+      if (dbs != null)
       {
-        var dbs = Services.GetService<IBackend>();
         await dbs.UnregisterAsync();
-        desktop.Shutdown(0);
-        return true;
       }
-      return false;
     }
-    private async Task<bool> TryLaunchedAsOpener(IClassicDesktopStyleApplicationLifetime desktop)
+    public static async Task<int[]> StartWithOpenerLifetime(this AppBuilder builder, string[] args)
     {
-      if (desktop.Args != null && desktop.Args.Length != 0)
+      var ids = new List<int>();
+      var bs = App.Services?.GetService<IBrowserService>();
+      if (bs != null)
       {
-        var bs = Services.GetService<IBrowserService>();
-        foreach (var arg in desktop.Args)
+        foreach (var arg in args)
         {
-          await bs.LaunchAsync(arg.Trim());
-        }
-        desktop.Shutdown(0);
-        return true;
-      }
-      return false;
-    }
-    private Task TryLaunchedAsNormal(IClassicDesktopStyleApplicationLifetime desktop)
-    {
-      var configs = Services.GetService<IConfiguration>();
-      var viewModel = new MainWindowViewModel { Browsers = [] };
-
-      var browsers = new Dictionary<string, Browser>();
-      configs.Bind("browsers", browsers);
-      foreach (var browser in browsers)
-      {
-        browser.Value.Id = browser.Key;
-        if (!string.IsNullOrWhiteSpace(browser.Value.Icon))
-        {
-          browser.Value.Icon = browser.Value.Icon;
+          var r = await bs.LaunchAsync(arg.Trim());
+          if (r != 0) ids.Add(r);
         }
       }
-      viewModel.Browsers = new ObservableCollection<Browser>(browsers.Values.Where(m=> m.IsInstalled));
-      viewModel.ItemTappedCommand = new RelayCommand<TappedEventArgs>(ItemTapped);
-
-      // Line below is needed to remove Avalonia data validation.
-      // Without this line you will get duplicate validations from both Avalonia and CT
-      BindingPlugins.DataValidators.RemoveAt(0);
-      desktop.MainWindow = new MainWindow
-      {
-        MinHeight = 120,
-        MinWidth = viewModel.Browsers.Count * 120,
-        Height = 120,
-        Width = viewModel.Browsers.Count * 120,
-        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-        DataContext = viewModel
-      };
-
-      return Task.CompletedTask;
-    }
-    private void ItemTapped(TappedEventArgs obj)
-    {
-      var source = obj.Source;
+      return ids.ToArray();
     }
   }
 

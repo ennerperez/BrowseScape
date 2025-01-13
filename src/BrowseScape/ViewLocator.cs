@@ -8,7 +8,7 @@ namespace BrowseScape
   public class ViewLocator : IDataTemplate
   {
 
-    public Control Build(object data)
+    public Control? Build(object? data)
     {
       var fullName = data?.GetType().FullName;
       if (fullName == null)
@@ -27,7 +27,7 @@ namespace BrowseScape
       return control;
     }
 
-    public bool Match(object data)
+    public bool Match(object? data)
     {
       return data is ViewModelBase;
     }

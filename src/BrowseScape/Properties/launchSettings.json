@@ -12,9 +12,13 @@
       "commandName": "Project",
       "commandLineArgs": "--unregister"
     },
-    "open": {
+    "open_url": {
       "commandName": "Project",
-      "commandLineArgs": "maps.google.com"
+      "commandLineArgs": "https://maps.google.com"
+    },
+    "open_selector": {
+      "commandName": "Project"
     }
   }
+
 }

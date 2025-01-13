@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using BrowseScape.Core;
 
 namespace BrowseScape.Views
 {

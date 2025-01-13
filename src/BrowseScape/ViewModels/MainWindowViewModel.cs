@@ -21,7 +21,7 @@ namespace BrowseScape.ViewModels
     }
     public ObservableCollection<Browser> Browsers { get; set; }
     
-    public RelayCommand<TappedEventArgs> ItemTappedCommand { get; set; }
+    public RelayCommand<TappedEventArgs>? ItemTappedCommand { get; set; }
   }
 
 }

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Enner Pérez")]
 [assembly: AssemblyCopyright("© 2024 All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 

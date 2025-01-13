@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowseScape", "src\BrowseSc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0F1E527B-1004-46F4-AAA8-7B12723EC486}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{C36A0286-20E2-45A1-8A4B-093B8F0C8B40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", ".build\_build.csproj", "{C36A0286-20E2-45A1-8A4B-093B8F0C8B40}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{008E518B-0BDB-44AE-AE28-7AC66CA5B3B6}"
 EndProject
@@ -35,7 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".files", ".files", "{0A18FE
 		Makefile = Makefile
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowseScape.Core", "BrowseScape.Core\BrowseScape.Core.csproj", "{083C287A-EE2A-4D68-A038-63CE85556E7C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowseScape.Core", "src\BrowseScape.Core\BrowseScape.Core.csproj", "{083C287A-EE2A-4D68-A038-63CE85556E7C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E65583C7-2615-4B15-9ECA-B1C75A9220D2}"
 EndProject
