@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>default</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Deterministic>false</Deterministic>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>App.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\App.ico</ApplicationIcon>
+    <UseAppHost>true</UseAppHost>
+    <AvaloniaVersion>11.2.3</AvaloniaVersion>
+    <RootNamespace>BrowseScape.Shell</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>BrowseScape.Shell</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(SourceGitNoAot)' != 'true'">
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/App.ico"/>
+    <AvaloniaResource Include="Assets/Fonts/*"/>
+    <AvaloniaResource Include="Assets/Fonts/**/*"/>
+    <AvaloniaResource Include="Assets/Images/*"/>
+    <AvaloniaResource Include="Assets/Images/**/*"/>
+  </ItemGroup>
+
+  <ItemGroup Label="Avalonia">
+    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)"/>
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)"/>
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)"/>
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)"/>
+    <!-- Extras -->
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.1.0"/>
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5"/>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+    <PackageReference Include="SvgToXamlConverter" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="8.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup Label="Serilog">
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0"/>
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4"/>
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0"/>
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+    <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0"/>
+    <PackageReference Include="Serilog.Sinks.Trace" Version="4.0.0"/>
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1"/>
+    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0"/>
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="BrowseScape"/>
+    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <LinkerArg Include="-mmacosx-version-min=11.0" Condition="'$(Configuration)' == 'Release'"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Runner\Runner.csproj" />
+  </ItemGroup>
+
+</Project>

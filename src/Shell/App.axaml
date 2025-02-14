@@ -1,0 +1,28 @@
+<Application
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:BrowseScape"
+    xmlns:shell="clr-namespace:BrowseScape.Shell"
+    x:Class="BrowseScape.Shell.App"
+    Name="dev.ennerperez.browsescape"
+    RequestedThemeVariant="Default">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <shell:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Assets/App.ico" ToolTipText="BrowseScape">
+                
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
+        
+    
+</Application>
